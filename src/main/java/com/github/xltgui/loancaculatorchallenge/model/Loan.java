@@ -28,8 +28,8 @@ public class Loan {
     private LocalDate firstPaymentDate;
     private BigDecimal amount;
     private BigDecimal interestRate;
-    private Long baseDays;
-    private Long totalPayments;
+    private int baseDays;
+    private int totalPayments;
 
     @OneToMany(mappedBy = "loan", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PaymentDetail> paymentDetails = new ArrayList<>();

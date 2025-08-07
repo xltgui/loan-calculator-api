@@ -1,24 +1,29 @@
 package com.github.xltgui.loancaculatorchallenge.web;
 
 import com.github.xltgui.loancaculatorchallenge.api.LoanRequest;
+import com.github.xltgui.loancaculatorchallenge.api.PaymentDetailResponse;
 import com.github.xltgui.loancaculatorchallenge.model.LoanCalculationService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("api/loan-calculate")
 public class LoanCalculatorController {
     private final LoanCalculationService service;
-    private final LoanMapper mapper;
+    private final LoanCalculatorMapper mapper;
 
     @PostMapping
-    public Object calculate(@RequestBody LoanRequest request) {
-
-        service.caculateLoanDetails(mapper.toEntity(request));
-        return null;
+    public ResponseEntity<List<PaymentDetailResponse>> calculate(@Valid @RequestBody LoanRequest request) {
+        var loanRequest = mapper.toEntity(request);
+        var response = mapper.toDtoList(service.caculateLoanDetails(loanRequest));
+        return ResponseEntity.ok().body(response);
     }
 }
