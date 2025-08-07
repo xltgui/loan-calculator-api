@@ -1,7 +1,11 @@
 package com.github.xltgui.loancaculatorchallenge.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -11,6 +15,9 @@ import java.util.List;
 @Entity
 @Table(name = "loans")
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Loan {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,6 +28,8 @@ public class Loan {
     private LocalDate firstPaymentDate;
     private BigDecimal amount;
     private BigDecimal interestRate;
+    private Long baseDays;
+    private Long totalPayments;
 
     @OneToMany(mappedBy = "loan", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PaymentDetail> paymentDetails = new ArrayList<>();

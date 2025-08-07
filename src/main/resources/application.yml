@@ -3,10 +3,10 @@ spring:
     name: loan-calculator
 
   datasource:
-    url: jdbc:postgresql://localhost:5434/loan
-    username: postgres
-    password: 1234
-    driver-class-name: org.postgresql.Driver
+    url: jdbc:h2:mem:loandb
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
 
   jpa:
     hibernate:

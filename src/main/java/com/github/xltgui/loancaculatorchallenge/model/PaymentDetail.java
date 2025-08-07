@@ -16,7 +16,7 @@ public class PaymentDetail {
 
         private LocalDate competenceDate;
         private BigDecimal loanAmount;
-        private BigDecimal outStandingBalance;
+        private BigDecimal outstandingBalance;
 
         private String consolidated;
         private BigDecimal installmentAmount;
