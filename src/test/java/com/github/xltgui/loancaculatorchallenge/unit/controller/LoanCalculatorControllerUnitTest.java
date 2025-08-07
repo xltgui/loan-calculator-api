@@ -1,4 +1,4 @@
-package com.github.xltgui.loancaculatorchallenge.controller;
+package com.github.xltgui.loancaculatorchallenge.unit.controller;
 
 import com.github.xltgui.loancaculatorchallenge.api.LoanRequest;
 import com.github.xltgui.loancaculatorchallenge.api.PaymentDetailResponse;
