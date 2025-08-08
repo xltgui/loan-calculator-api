@@ -1,7 +1,7 @@
 package com.github.xltgui.loancaculatorchallenge.web.common;
 
-import com.github.xltgui.loancaculatorchallenge.api.CustomFieldError;
-import com.github.xltgui.loancaculatorchallenge.api.ResponseError;
+import com.github.xltgui.loancaculatorchallenge.api.common.CustomFieldError;
+import com.github.xltgui.loancaculatorchallenge.api.common.ResponseError;
 import com.github.xltgui.loancaculatorchallenge.exception.InvalidDateDateException;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;

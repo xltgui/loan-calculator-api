@@ -1,6 +1,7 @@
-package com.github.xltgui.loancaculatorchallenge.api;
+package com.github.xltgui.loancaculatorchallenge.api.common;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.util.List;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
