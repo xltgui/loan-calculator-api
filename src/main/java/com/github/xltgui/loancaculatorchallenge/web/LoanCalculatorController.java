@@ -6,16 +6,14 @@ import com.github.xltgui.loancaculatorchallenge.model.LoanCalculationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("api/loan-calculate")
+@CrossOrigin(origins = "http://localhost:4200")
 public class LoanCalculatorController {
     private final LoanCalculationService service;
     private final LoanCalculatorMapper mapper;
