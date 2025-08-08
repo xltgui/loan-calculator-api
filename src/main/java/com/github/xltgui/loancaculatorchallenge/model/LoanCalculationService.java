@@ -7,12 +7,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TreeSet;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -32,24 +31,19 @@ public class LoanCalculationService {
 
         boolean isPaymentInTheLastDayOfMonth = loan.getFirstPaymentDate().lengthOfMonth() == loan.getFirstPaymentDate().getDayOfMonth();
 
-        BigDecimal currentOutstandingBalance = loan.getAmount();
-        BigDecimal currentProvision = BigDecimal.ZERO;
+        BigDecimal principalBalance = loan.getAmount();
+        BigDecimal accumulatedInterest = BigDecimal.ZERO;
         LocalDate previousCompetenceDate = loan.getStartDate();
 
         TreeSet<LocalDate> competenceDates = determineAllCompetenceDates(loan, isPaymentInTheLastDayOfMonth);
 
         if(competenceDates.first().equals(loan.getStartDate())) {
             PaymentDetail initialDetail = setInitialPayment(loan);
-
             paymentDetails.add(initialDetail);
-
             previousCompetenceDate = loan.getStartDate();
-            currentOutstandingBalance = loan.getAmount();
-            currentProvision = BigDecimal.ZERO;
         }
 
         competenceDates.removeFirst();
-
         for(LocalDate currentCompetenceDate : competenceDates) {
             // Diferença entre a data atual e a data anterior
             int daysInPeriod = Math.toIntExact(ChronoUnit.DAYS.between(previousCompetenceDate, currentCompetenceDate));
@@ -63,7 +57,9 @@ public class LoanCalculationService {
             BigDecimal exponent = daysDec.divide(baseDaysDec, 10, RoundingMode.HALF_UP);
             BigDecimal ratePlusOne = annualRate.add(BigDecimal.ONE);
             BigDecimal power = BigDecimal.valueOf(Math.pow(ratePlusOne.doubleValue(), exponent.doubleValue()));
-            BigDecimal provision = power.subtract(BigDecimal.ONE).multiply(currentOutstandingBalance.add(currentProvision)).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal provision = power.subtract(BigDecimal.ONE)
+                    .multiply(principalBalance.add(accumulatedInterest))
+                    .setScale(10, RoundingMode.HALF_UP);
 
             PaymentDetail detail = new PaymentDetail();
             detail.setCompetenceDate(currentCompetenceDate);
@@ -78,56 +74,55 @@ public class LoanCalculationService {
                 consolidatedCount++;
                 detail.setConsolidated(consolidatedCount + "/" + loan.getTotalPayments());
 
-                // Parcela
-                BigDecimal amortization = loan.getAmount().divide(BigDecimal.valueOf(loan.getTotalPayments()), 2, RoundingMode.HALF_UP);
-
-                if(isEndDate) amortization = currentOutstandingBalance;
-
-                BigDecimal installmentAmount = amortization.add(currentProvision).add(provision).setScale(2, RoundingMode.HALF_UP);
-                detail.setInstallmentAmount(installmentAmount);
-
-                // Principal
-                detail.setPrincipalAmortization(amortization);
-
-                currentOutstandingBalance = currentOutstandingBalance.subtract(amortization).setScale(2, RoundingMode.HALF_UP);
-                if(isEndDate) {
-                    currentOutstandingBalance = BigDecimal.ZERO;
+                // Amortização
+                BigDecimal amortization = BigDecimal.ZERO;
+                if(consolidatedCount <= loan.getTotalPayments()) {
+                     amortization = loan.getAmount()
+                             .divide(BigDecimal.valueOf(loan.getTotalPayments()), 10, RoundingMode.HALF_UP);
                 }
+                if(isEndDate) amortization = principalBalance;
+                detail.setPrincipalAmortization(amortization.setScale(2, RoundingMode.HALF_UP));
 
-                detail.setPrincipalBalance(currentOutstandingBalance);
+                BigDecimal paidInterest = accumulatedInterest.add(provision);
+                detail.setPaidAmount(paidInterest.setScale(2, RoundingMode.HALF_UP));
 
-                // Juros
-                detail.setProvision(provision);
-                detail.setAccumulatedInterest(BigDecimal.ZERO);
-                detail.setPaidAmount(currentProvision.add(provision).setScale(2, RoundingMode.HALF_UP));
+                // Total Parcela
+                BigDecimal installmentAmount = amortization.add(paidInterest);
+                detail.setInstallmentAmount(installmentAmount.setScale(2, RoundingMode.HALF_UP));
+
+                // Saldo Principal
+                principalBalance = principalBalance.subtract(amortization);
+                detail.setPrincipalBalance(principalBalance.setScale(2, RoundingMode.HALF_UP));
+
+                // Provisão
+                detail.setProvision(provision.setScale(2, RoundingMode.HALF_UP));
+
+                // Acumulado
+                accumulatedInterest = accumulatedInterest.add(provision).subtract(paidInterest);
 
                 // Saldo devedor
-                detail.setOutstandingBalance(detail.getPrincipalBalance().add(detail.getAccumulatedInterest()));
-
-                currentProvision = BigDecimal.ZERO;
             } else {
                 detail.setConsolidated("");
 
                 detail.setInstallmentAmount(BigDecimal.ZERO);
                 detail.setPrincipalAmortization(BigDecimal.ZERO);
-                detail.setPrincipalBalance(currentOutstandingBalance);
-
-                detail.setProvision(provision);
-                detail.setAccumulatedInterest(currentProvision.add(provision).setScale(2, RoundingMode.HALF_UP));
                 detail.setPaidAmount(BigDecimal.ZERO);
 
-                // Saldo devedor
-                detail.setOutstandingBalance(detail.getPrincipalBalance().add(detail.getAccumulatedInterest()));
+                detail.setPrincipalBalance(principalBalance.setScale(2, RoundingMode.HALF_UP));
+                detail.setProvision(provision.setScale(2, RoundingMode.HALF_UP));
 
-                // Atualiza a provisão acumulada
-                currentProvision = currentProvision.add(provision).setScale(2, RoundingMode.HALF_UP);
+                accumulatedInterest = accumulatedInterest.add(provision);
+
+                // Saldo devedor
             }
+            detail.setAccumulatedInterest(accumulatedInterest.setScale(2, RoundingMode.HALF_UP));
+            detail.setOutstandingBalance(principalBalance.add(accumulatedInterest).setScale(2, RoundingMode.HALF_UP));
             paymentDetails.add(detail);
             previousCompetenceDate = currentCompetenceDate;
         }
 
         loan.setPaymentDetails(paymentDetails);
-        // Obs: nao é necessario salvar paymentDetails em seu proprio repositorio por conta do CascadeType.ALL
+        // Obs.: nao é necessario salvar paymentDetails em seu proprio repositorio por conta do CascadeType.ALL
         loanRepository.save(loan);
 
         return paymentDetails;
@@ -141,6 +136,13 @@ public class LoanCalculationService {
         if(isPaymentInTheLastDayOfMonth){
             return competenceDate.lengthOfMonth() == competenceDate.getDayOfMonth();
         }
+
+        // Retorna verdadeiro se for dia não util e nao for o ultimo dia do mês
+        // Com intuito de considerar a data convertida para um dia util como uma data de pagamento
+        if(competenceDate.getDayOfMonth() != competenceDate.lengthOfMonth()){
+            return isAnUtilDay(competenceDate, getHolidays(competenceDate.getYear()));
+        }
+
         return false;
     }
 
@@ -209,6 +211,67 @@ public class LoanCalculationService {
                 currentPaymentDate = currentPaymentDate.plusMonths(1);
             }
         }
+
+        List<LocalDate> utilDatesOnly = processDates(competenceDates, loan, true);
+        competenceDates.addAll(utilDatesOnly); // adiciona as datas úteis convertidas
+
+        List<LocalDate> datesToRemove = processDates(competenceDates, loan, false);
+        datesToRemove.forEach(competenceDates::remove); // remove datas não úteis
+
         return competenceDates;
+    }
+
+    private List<LocalDate> processDates(TreeSet<LocalDate> currentDates, Loan loan, boolean returnNextUtilDay){
+        List<LocalDate> dates = new ArrayList<>();
+
+        for (LocalDate competenceDate : currentDates) {
+            // Valida se nao é a data final
+            if(competenceDate == loan.getEndDate()) continue;
+
+            // Valida se nao é o último dia do mês
+            if(competenceDate.getDayOfMonth() == competenceDate.lengthOfMonth()) continue;
+
+            // Valida se nao é dia util
+            if (!isAnUtilDay(competenceDate, getHolidays(competenceDate.getYear()))) {
+                if(returnNextUtilDay){
+                    dates.add(getNextUtilDay(competenceDate)); // retorna as datas convertidas
+                }else{
+                    dates.add(competenceDate); // retorna as datas para remover
+                }
+            }
+        }
+        return dates;
+    }
+
+    // Verifica se é um dia útil
+    private boolean isAnUtilDay (LocalDate date, Set<LocalDate> holidays) {
+        return !(date.getDayOfWeek() == DayOfWeek.SATURDAY ||
+                date.getDayOfWeek() == DayOfWeek.SUNDAY ||
+                holidays.contains(date));
+    }
+
+    private LocalDate getNextUtilDay(LocalDate date){
+        LocalDate nextUtilDay = date.plusDays(1);
+
+        // Retorna o próximo dia útil
+        while(!isAnUtilDay(nextUtilDay, getHolidays(date.getYear()))){
+            nextUtilDay = nextUtilDay.plusDays(1);
+        }
+        return nextUtilDay;
+    }
+
+    private Set<LocalDate> getHolidays (int year){
+        Set<LocalDate> holidays = new HashSet<>();
+
+        holidays.add(LocalDate.of(year, 1, 1));   // Confraternização Universal
+        holidays.add(LocalDate.of(year, 4, 21));  // Tiradentes
+        holidays.add(LocalDate.of(year, 5, 1));   // Dia do Trabalho
+        holidays.add(LocalDate.of(year, 9, 7));   // Independência do Brasil
+        holidays.add(LocalDate.of(year, 10, 12)); // Nossa Senhora Aparecida
+        holidays.add(LocalDate.of(year, 11, 2));  // Finados
+        holidays.add(LocalDate.of(year, 11, 15)); // Proclamação da República
+        holidays.add(LocalDate.of(year, 12, 25)); // Natal
+
+        return holidays;
     }
 }

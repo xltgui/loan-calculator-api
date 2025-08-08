@@ -32,11 +32,11 @@ public class LoanCalculatorIntegrationTest {
     @DisplayName("Must return status 200 with payment details")
     void shouldReturnLoanCalculationResult() throws Exception {
         LoanRequest request = new LoanRequest(
-                LocalDate.of(2025, 1, 1),
-                LocalDate.of(2025, 12, 31),
-                LocalDate.of(2025, 2, 1),
-                BigDecimal.valueOf(10000),
-                BigDecimal.valueOf(5)
+                LocalDate.of(2024, 1, 1),
+                LocalDate.of(2034, 1, 1),
+                LocalDate.of(2024, 2, 15),
+                BigDecimal.valueOf(140000),
+                BigDecimal.valueOf(7)
         );
 
         mockMvc.perform(post("/api/loan-calculate")

@@ -23,6 +23,7 @@ public class LoanCalculatorMapper {
                 .build();
     }
 
+
     public List<PaymentDetailResponse> toDtoList(List<PaymentDetail> paymentDetails) {
         List<PaymentDetailResponse> details = new ArrayList<>();
         for(PaymentDetail detail : paymentDetails){
@@ -30,13 +31,13 @@ public class LoanCalculatorMapper {
                     detail.getConsolidated(),
                     detail.getCompetenceDate(),
                     detail.getLoanAmount(),
-                    detail.getPrincipalBalance(),
                     detail.getOutstandingBalance(),
                     detail.getInstallmentAmount(),
                     detail.getPrincipalAmortization(),
+                    detail.getPrincipalBalance(),
+                    detail.getProvision(),
                     detail.getAccumulatedInterest(),
-                    detail.getPaidAmount(),
-                    detail.getProvision()
+                    detail.getPaidAmount()
             ));
         }
         return details;
