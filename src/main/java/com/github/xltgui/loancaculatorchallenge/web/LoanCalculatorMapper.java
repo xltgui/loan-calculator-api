@@ -18,8 +18,8 @@ public class LoanCalculatorMapper {
                 .amount(dto.amount())
                 .firstPaymentDate(dto.firstPaymentDate())
                 .interestRate(dto.interestRate())
-                .baseDays(dto.baseDays())
-                .totalPayments(dto.totalPayments())
+                .baseDays(360) // hardcoded como solicitado
+                .totalPayments(120) // hardcoded como solicitado
                 .build();
     }
 

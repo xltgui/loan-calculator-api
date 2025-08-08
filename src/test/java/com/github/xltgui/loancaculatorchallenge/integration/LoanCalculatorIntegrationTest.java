@@ -36,9 +36,7 @@ public class LoanCalculatorIntegrationTest {
                 LocalDate.of(2025, 12, 31),
                 LocalDate.of(2025, 2, 1),
                 BigDecimal.valueOf(10000),
-                BigDecimal.valueOf(5),
-                360,
-                12
+                BigDecimal.valueOf(5)
         );
 
         mockMvc.perform(post("/api/loan-calculate")

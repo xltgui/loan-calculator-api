@@ -28,6 +28,7 @@ public class Loan {
     private LocalDate firstPaymentDate;
     private BigDecimal amount;
     private BigDecimal interestRate;
+
     private int baseDays;
     private int totalPayments;
 

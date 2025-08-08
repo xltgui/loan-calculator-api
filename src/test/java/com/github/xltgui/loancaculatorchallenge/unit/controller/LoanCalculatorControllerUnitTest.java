@@ -49,9 +49,7 @@ public class LoanCalculatorControllerUnitTest {
                 LocalDate.of(2025, 12, 31),
                 LocalDate.of(2025, 2, 1),
                 BigDecimal.valueOf(10000),
-                BigDecimal.valueOf(5),
-                360,
-                12
+                BigDecimal.valueOf(5)
         );
 
         Loan loan = new Loan();
@@ -61,9 +59,6 @@ public class LoanCalculatorControllerUnitTest {
         loan.setFirstPaymentDate(testLoanRequest.firstPaymentDate());
         loan.setAmount(testLoanRequest.amount());
         loan.setInterestRate(testLoanRequest.interestRate());
-        loan.setBaseDays(testLoanRequest.baseDays());
-        loan.setTotalPayments(testLoanRequest.totalPayments());
-
 
         testPaymentDetailEntity = new PaymentDetail();
         testPaymentDetailEntity.setId(1L);

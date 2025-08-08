@@ -20,12 +20,6 @@ public record LoanRequest(
         BigDecimal amount,
 
         @Positive(message = "Field must be positive and not null")
-        BigDecimal interestRate,
-
-        @Positive(message = "Field must be positive and not null")
-        int baseDays,
-
-        @Positive(message = "Field must be positive and not null")
-        int totalPayments
+        BigDecimal interestRate
 ) {
 }
