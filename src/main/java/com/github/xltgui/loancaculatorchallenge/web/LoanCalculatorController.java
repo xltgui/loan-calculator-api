@@ -20,8 +20,8 @@ public class LoanCalculatorController {
 
     @PostMapping
     public ResponseEntity<List<PaymentDetailResponse>> calculate(@Valid @RequestBody LoanRequest request) {
-        var loanRequest = mapper.toEntity(request);
-        var response = mapper.toDtoList(service.caculateLoanDetails(loanRequest));
+        var entity = mapper.toEntity(request);
+        var response = mapper.toDtoList(service.caculateLoanDetails(entity));
         return ResponseEntity.ok().body(response);
     }
 }
