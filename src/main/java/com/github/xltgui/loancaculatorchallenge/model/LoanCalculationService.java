@@ -212,6 +212,7 @@ public class LoanCalculationService {
             }
         }
 
+
         List<LocalDate> utilDatesOnly = processDates(competenceDates, loan, true);
         competenceDates.addAll(utilDatesOnly); // adiciona as datas úteis convertidas
 
@@ -226,7 +227,7 @@ public class LoanCalculationService {
 
         for (LocalDate competenceDate : currentDates) {
             // Valida se nao é a data final
-            if(competenceDate == loan.getEndDate()) continue;
+            if(competenceDate == loan.getEndDate() || competenceDate == loan.getStartDate()) continue;
 
             // Valida se nao é o último dia do mês
             if(competenceDate.getDayOfMonth() == competenceDate.lengthOfMonth()) continue;
